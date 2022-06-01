@@ -17,5 +17,6 @@ The end goal of this smart contract would be to become a smart contract vault th
 
 **Current Functions:**
 
+- `depositEthers` - As stated, this function receives a uint256 which is the ether amount the user tries to deposit, the vaultBalance is incremented and a Deposit event is emitted
 
 **What's In Progress:**
