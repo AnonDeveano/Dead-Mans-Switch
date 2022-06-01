@@ -30,3 +30,9 @@ The end goal of this smart contract would be to become a smart contract vault th
 - `getBalance` and `getTokenBalance` are pretty self-explanatory. One returns the ethers/native currency balance and the other returns the balanceOf of a specific token contract
 
 **What's In Progress:**
+
+- Implement an iterable data structure/array for the `withdrawTokens` function. What this would accomplish would be iterating over every valid token address to forward to the `distAddress`. The one weakness I see here in that a random sender can send a malicious token to the contract which can have malicious code allowing the contract to be drained. Adding the `onlyOwner` modifier to the `depositTokens` function would prevent anybody apart from the owner from depositing tokens. This would be restrictive if this smart contract will receive funds from multiple addresses
+
+- Implement a one button deposit/withdraw button for Curve/Yearn. Simplify the front end which would make generating yields painless. The one weakness here is that the options may be limited in which assets can be used 
+
+- Implement the external bot/script in JS that could be set to call the `ping()` function after a programmable amount of time has passed and the bot/script hasn't been "refreshed"
