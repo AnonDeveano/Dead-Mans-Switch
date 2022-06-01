@@ -5,8 +5,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./TheHardStuff.sol";
 
-contract Unseizable {
+contract DeadManSwitch is TheHardStuff {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -28,7 +29,7 @@ contract Unseizable {
         uint256 amount
     );
 
-    event LengthSet(uint256 length);
+    event timePeriodSet(uint256 time);
 
     /* ========== STATE VARIABLES ========== */
     address owner;
@@ -72,6 +73,7 @@ contract Unseizable {
     // Set time duration for ping()
     function setTimePeriod(uint256 time) private onlyOwner {
         timePeriod = time;
+        emit timePeriodSet(timePeriod);
     }
 
     /* ========== FUNCTIONS ========== */
