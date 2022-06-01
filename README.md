@@ -19,4 +19,14 @@ The end goal of this smart contract would be to become a smart contract vault th
 
 - `depositEthers` - As stated, this function receives a uint256 which is the ether amount the user tries to deposit, the vaultBalance is incremented and a Deposit event is emitted
 
+- `depositTokens` - As with the above function, this accepts tokens. The token address is passed into the function along with an amount. This function can approve the tokens by calling the IERC20 implementation, transfer the tokens from the user's wallet, and then decreases the 'allowance' the user approved the contract. `safeDecreaseAllowance` would benefit the end user. Emits a `DepositTokens` event. 
+
+- `withdrawEthers` - Checks if requested withdraw amount is valid, subtracts the requested amount from the balance, and forwards the ethers to the designated `distAddress`. A Withdrawn event is emitted.
+
+- `withdrawTokens` - Checks the balanceOf the specific token address that is passed to the function. If valid, the function will `safeTransfer` all of the token to the `distAddress`
+
+- `Ping` - This function needs to be called to keep the `timePeriod` variable from expiring. When/if that variable expires, the contract ethers balance will be forwarded to the `distAddress`. If the `timePeriod` is still valid, the `pingActive` bool will remain true and the timePeriod will be refreshed with `block.timestamp + 12 weeks` in which the latter time can be customizable based on needs.
+
+- `getBalance` and `getTokenBalance` are pretty self-explanatory. One returns the ethers/native currency balance and the other returns the balanceOf of a specific token contract
+
 **What's In Progress:**
