@@ -1,4 +1,7 @@
 # Dead-Mans-Switch
+
+**Objective**
+
 A smart contract solution in the event that you lose access to the private keys of a wallet. Modular to adapt based on needs...but what does that exactly mean?
 
 I had a couple of main motivations for making this project. My first was of course to make an unguided project as part of my portfolio so I can apply for jobs in the Web3 space. The other was a thought I had in regards to what happens to a person's funds on a wallet if something were to happen and they couldn't access it...
@@ -12,7 +15,7 @@ The end goal of this smart contract would be to become a smart contract vault th
 3. Iterate over an array/data structure of all current tokens in the smart contract and a for-loop would send each token until the contract is empty; to guard against random airdrops, the function would have restrictions so each instance wouldn't become a honeypot
 
 
-Current Functions:
+**Current Functions:**
 
 
-What's In Progress:
+**What's In Progress:**
