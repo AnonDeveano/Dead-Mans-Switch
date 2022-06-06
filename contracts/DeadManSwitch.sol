@@ -44,6 +44,11 @@ contract DeadManSwitch is TheHardStuff {
     // Ether balance;
     uint256 vaultBalance;
 
+    // When depositing tokens, the token address is stored here
+    // so that it can be iterated upon the else of ping()
+    mapping(address => uint256) private tokenWallet;
+    address[] private tokenArray;
+
     /* ========== ADMIN ========== */
 
     // Automatically sets address of deployer to be owner
@@ -89,8 +94,21 @@ contract DeadManSwitch is TheHardStuff {
     // Omitted safeApprove because decreased
     function depositTokens(address _token, uint256 value) public payable {
         IERC20 token = IERC20(_token);
+        address tokenWalletIndex = tokenWallet[tokenAddy];
         token.approve(address(this), value);
         token.safeTransferFrom(msg.sender, address(this), value);
+
+        // If token address is found in tokenWallet mapping; value just gets incremented
+        if (tokenWalletIndex > 0) {
+            tokenWallet[tokenWalletIndex].value += value;
+        }
+
+        // No corresponding address - add address to array and add index to mapping
+        tokenArray.push(token.address);
+
+        // tokenArray.length - 1 makes the array start at 0 index
+        tokenWallet[tokenAddy] = tokenArray.length - 1;
+
         token.safeDecreaseAllowance(address(this), value);
         emit DepositTokens(msg.sender, address(this), _token, msg.value);
     }
@@ -111,7 +129,9 @@ contract DeadManSwitch is TheHardStuff {
         emit TokensWithdrawn(owner, distAddress, tokenContract, value);
     }
 
-    // Ping, 30 day grace period after deadline then funds are released
+    // Ping, if done before timePeriod expires, renews bool/timePeriod
+    // Else, sends ether to the distAddress
+    // Needs token interaction here as well
     function Ping() private onlyOwner {
         uint256 ethBalance = address(this).balance;
         if (block.timestamp < timePeriod) {
