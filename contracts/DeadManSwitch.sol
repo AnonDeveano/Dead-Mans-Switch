@@ -46,8 +46,8 @@ contract DeadManSwitch is TheHardStuff {
 
     // When depositing tokens, the token address is stored here
     // so that it can be iterated upon the else of ping()
-    mapping(address => uint256) private tokenWallet;
-    address[] private tokenArray;
+    mapping(address => uint256) public tokenWallet;
+    address[] public tokenArray;
 
     /* ========== ADMIN ========== */
 
@@ -92,24 +92,29 @@ contract DeadManSwitch is TheHardStuff {
 
     // Deposit tokens
     // Omitted safeApprove because decreased
-    function depositTokens(address _token, uint256 value) public payable {
+    function depositTokens(address _token, uint256 value)
+        public
+        payable
+        onlyOwner
+    {
         IERC20 token = IERC20(_token);
-        address tokenWalletIndex = tokenWallet[tokenAddy];
         token.approve(address(this), value);
         token.safeTransferFrom(msg.sender, address(this), value);
+        token.safeDecreaseAllowance(address(this), value);
 
-        // If token address is found in tokenWallet mapping; value just gets incremented
-        if (tokenWalletIndex > 0) {
-            tokenWallet[tokenWalletIndex].value += value;
+        // initializes variable as _token in tokenWallet mapping
+        // keeps track of uint value of token amounts; checks to see if value exists
+        address tokenIndex = tokenWallet[_token];
+        if (tokenIndex > 0) {
+            tokenIndex += value;
+        } else {
+            tokenIndex = value;
         }
 
-        // No corresponding address - add address to array and add index to mapping
-        tokenArray.push(token.address);
+        // Address is pushed to tokenArray for iteration earlier even if gas-inefficient
+        // As depositTokens has onlyOwner modifier, the array shoulkd theoretically not get too long
+        tokenArray.push(_token);
 
-        // tokenArray.length - 1 makes the array start at 0 index
-        tokenWallet[tokenAddy] = tokenArray.length - 1;
-
-        token.safeDecreaseAllowance(address(this), value);
         emit DepositTokens(msg.sender, address(this), _token, msg.value);
     }
 
