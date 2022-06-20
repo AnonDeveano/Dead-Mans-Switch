@@ -100,19 +100,17 @@ contract DeadManSwitch is TheHardStuff {
         IERC20 token = IERC20(_token);
         token.approve(address(this), value);
         token.safeTransferFrom(msg.sender, address(this), value);
-        token.safeDecreaseAllowance(address(this), value);
 
-        // initializes variable as _token in tokenWallet mapping
-        // keeps track of uint value of token amounts; checks to see if value exists
-        address tokenIndex = tokenWallet[_token];
-        if (tokenIndex > 0) {
-            tokenIndex += value;
+        // Creates a variable for deposited token related to mapping so values can be updated easily
+        // if key value exists
+        dTokens storage depToken = tokenWallet[_token];
+        if (depToken.value > 0) {
+            depToken.value += value;
         } else {
-            tokenIndex = value;
+            tokenWallet[_token] = dTokens(_token, value);
         }
 
-        // Address is pushed to tokenArray for iteration earlier even if gas-inefficient
-        // As depositTokens has onlyOwner modifier, the array shoulkd theoretically not get too long
+        // Pushes token to tokenArray where it can be possibly iterated upon
         tokenArray.push(_token);
 
         emit DepositTokens(msg.sender, address(this), _token, msg.value);
@@ -139,10 +137,15 @@ contract DeadManSwitch is TheHardStuff {
     // Needs token interaction here as well
     function Ping() private onlyOwner {
         uint256 ethBalance = address(this).balance;
+        address token = tokenArray[i];
+        uint256 arrayLength = tokenArray.length;
         if (block.timestamp < timePeriod) {
             pingActive = true;
             timePeriod = block.timestamp + 12 weeks;
         } else {
+            for (uint256 i = 0; i < arrayLength; i++) {
+                token.safeTransfer(distAddress, value);
+            }
             distAddress.transfer(ethBalance);
         }
     }
