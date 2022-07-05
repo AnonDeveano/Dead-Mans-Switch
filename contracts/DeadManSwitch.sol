@@ -93,6 +93,7 @@ contract DeadManSwitch is TheHardStuff {
     // Deposit tokens
     // Omitted safeApprove because decreased
     function depositTokens(address _token, uint256 value)
+    function depositTokens(address _token, uint256 value)
         public
         payable
         onlyOwner
@@ -101,17 +102,18 @@ contract DeadManSwitch is TheHardStuff {
         token.approve(address(this), value);
         token.safeTransferFrom(msg.sender, address(this), value);
 
-        // Creates a variable for deposited token related to mapping so values can be updated easily
-        // if key value exists
-        dTokens storage depToken = tokenWallet[_token];
+        // This creates a struct in storage in the mapping under uint tokenNum
+        // If the struct has a value, then it's updated to add value
+        // If the tokenNum points to a place in mapping with no value, a new struct is inserted
+        // tokenNum is incremented every time a new struct is inserted
+        dTokens storage depToken = tokenWallet[tokenNum]; 
         if (depToken.value > 0) {
             depToken.value += value;
         } else {
-            tokenWallet[_token] = dTokens(_token, value);
+            tokenWallet[tokenNum] = dTokens(_token, value);
+            tokenNum++;
+            tokenArray.push(tokenNum);
         }
-
-        // Pushes token to tokenArray where it can be possibly iterated upon
-        tokenArray.push(_token);
 
         emit DepositTokens(msg.sender, address(this), _token, msg.value);
     }
