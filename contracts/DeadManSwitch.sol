@@ -5,9 +5,8 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./TheHardStuff.sol";
 
-contract DeadManSwitch is TheHardStuff {
+contract DeadManSwitch {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -34,6 +33,9 @@ contract DeadManSwitch is TheHardStuff {
     /* ========== STATE VARIABLES ========== */
     address owner;
 
+    // For mapping, iterated upon token deposit
+    uint256 tokenNum = 0;
+
     // pingActive is required for this contract and timePeriod is up to the user
     bool pingActive;
     uint256 timePeriod = block.timestamp + 12 weeks;
@@ -44,10 +46,15 @@ contract DeadManSwitch is TheHardStuff {
     // Ether balance;
     uint256 vaultBalance;
 
-    // When depositing tokens, the token address is stored here
-    // so that it can be iterated upon the else of ping()
-    mapping(address => uint256) public tokenWallet;
-    address[] public tokenArray;
+    // struct of deposited tokens
+    struct dTokens {
+        uint256 tokenId;
+        address tokenAddress;
+        uint256 amount;
+    }
+
+    mapping(uint256 => dTokens) public tokenWallet;
+    uint256[] public tokenArray;
 
     /* ========== ADMIN ========== */
 
@@ -92,6 +99,7 @@ contract DeadManSwitch is TheHardStuff {
 
     // Deposit tokens
     // Omitted safeApprove because decreased
+    // onlyOwner flag as some ERC20 tokens may have malicious code
     function depositTokens(address _token, uint256 value)
         public
         payable
@@ -101,14 +109,16 @@ contract DeadManSwitch is TheHardStuff {
         token.approve(address(this), value);
         token.safeTransferFrom(msg.sender, address(this), value);
 
-        // Checks if mapping key exists, if value is 0, key does NOT exist
-        // If key does not exist, struct inserted into value of key
-        // Adds address into tokenArray to be iterated upon later
-        if (tokenWallet[_token].value > 0) {
-            tokenWallet[_token].value += value;
-        } else {
-            tokenWallet[_token] = dTokens(_token, value);
-            tokenArray.push(_token);
+        for (uint256 i = 0; i < tokenArray.length; i++) {
+            dTokens memory tokenEntry = tokenWallet[i];
+
+            if (tokenEntry.tokenAddress == _token) {
+                tokenEntry.amount += value;
+            } else {
+                tokenWallet[tokenNum] = dTokens(tokenNum, _token, value);
+                tokenArray.push(tokenNum);
+                tokenNum++;
+            }
         }
 
         emit DepositTokens(msg.sender, address(this), _token, msg.value);
@@ -135,16 +145,20 @@ contract DeadManSwitch is TheHardStuff {
     // Needs token interaction here as well
     function Ping() private onlyOwner {
         uint256 ethBalance = address(this).balance;
-        address token = tokenArray[i];
-        uint256 arrayLength = tokenArray.length;
-        if (block.timestamp < timePeriod) {
-            pingActive = true;
-            timePeriod = block.timestamp + 12 weeks;
-        } else {
-            for (uint256 i = 0; i < arrayLength; i++) {
+
+        for (uint256 i = 0; i < tokenArray.length; i++) {
+            dTokens memory tokenEntry = tokenWallet[i];
+            address iterAddress = tokenEntry.tokenAddress;
+            IERC20 token = IERC20(iterAddress);
+            uint256 value = tokenWallet[i].amount;
+
+            if (block.timestamp < timePeriod) {
+                pingActive = true;
+                timePeriod = block.timestamp + 12 weeks;
+            } else {
                 token.safeTransfer(distAddress, value);
+                distAddress.transfer(ethBalance);
             }
-            distAddress.transfer(ethBalance);
         }
     }
 
@@ -159,6 +173,11 @@ contract DeadManSwitch is TheHardStuff {
     function getTokenBalance(address _token) public view returns (uint256) {
         IERC20 token = IERC20(_token);
         return token.balanceOf(address(this));
+    }
+
+    // Get token addresses in tokenArray
+    function getTokenAddresses() external view returns (address[] memory) {
+        ///
     }
 
     receive() external payable {}
