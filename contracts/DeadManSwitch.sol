@@ -91,9 +91,8 @@ contract DeadManSwitch {
     /* ========== FUNCTIONS ========== */
 
     // Deposit
-    function depositEthers(uint256 amount) public payable {
-        require(msg.value == amount);
-        vaultBalance = vaultBalance.add(amount);
+    function depositEthers() public payable {
+        vaultBalance = vaultBalance.add(msg.value);
         emit Deposit(msg.sender, address(this), msg.value);
     }
 
