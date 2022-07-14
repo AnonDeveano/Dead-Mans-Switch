@@ -60,7 +60,7 @@ contract DeadManSwitch {
 
     // Automatically sets address of deployer to be owner
     constructor() {
-        msg.sender == owner;
+        owner = msg.sender;
     }
 
     // Restricts vulnerability in other functions
