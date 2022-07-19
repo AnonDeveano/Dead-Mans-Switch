@@ -96,12 +96,6 @@ contract DeadManSwitch {
         emit Deposit(msg.sender, address(this), msg.value);
     }
 
-    // Safer implementation of approve()
-    function increaseAllow(address _token, uint256 value) public onlyOwner {
-        IERC20 token = IERC20(_token);
-        token.safeIncreaseAllowance(address(this), value);
-    }
-
     // Deposit tokens
     // onlyOwner flag as some ERC20 tokens may have malicious code
     function depositTokens(address _token, uint256 value)
