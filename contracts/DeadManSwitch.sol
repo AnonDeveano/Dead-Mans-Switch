@@ -10,6 +10,18 @@ contract DeadManSwitch {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    /* ======== INITIALIZATION ======== */
+    // Automatically sets address of deployer to be owner
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // Restricts vulnerability in other functions
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Address is not owner");
+        _;
+    }
+
     /* ========== EVENTS ========== */
 
     event Deposit(address indexed user, address indexed to, uint256 amount);
@@ -33,9 +45,6 @@ contract DeadManSwitch {
     /* ========== STATE VARIABLES ========== */
     address owner;
 
-    // For mapping, iterated upon token deposit
-    uint256 tokenNum = 0;
-
     // pingActive is required for this contract and timePeriod is up to the user
     bool pingActive;
     uint256 timePeriod = block.timestamp + 12 weeks;
@@ -46,44 +55,26 @@ contract DeadManSwitch {
     // Ether balance;
     uint256 vaultBalance;
 
-    // struct of deposited tokens
-    struct dTokens {
-        uint256 tokenId;
-        address tokenAddress;
-        uint256 amount;
-    }
-
-    mapping(uint256 => dTokens) public tokenWallet;
-    uint256[] public tokenArray;
+    mapping(address => uint256) public tokenWallet;
+    address[] public tokenArray;
 
     /* ========== ADMIN ========== */
 
-    // Automatically sets address of deployer to be owner
-    constructor() {
-        owner = msg.sender;
-    }
-
-    // Restricts vulnerability in other functions
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Address is not owner");
-        _;
-    }
-
     // Change distribution address
-    function setNewAddress(address payable newAddress) private onlyOwner {
+    function setNewAddress(address payable newAddress) public onlyOwner {
         require(newAddress != address(0), "Cannot be zero address");
         distAddress = newAddress;
     }
 
     // Set new admin of contract
     // Only attack vector I can recognize by including this is if private keys are compromised
-    function setNewOwner(address newOwner) private onlyOwner {
+    function setNewOwner(address newOwner) public onlyOwner {
         require(newOwner != address(0), "Cannot be zero address");
         owner = newOwner;
     }
 
     // Set time duration for ping()
-    function setTimePeriod(uint256 time) private onlyOwner {
+    function setTimePeriod(uint256 time) public onlyOwner {
         timePeriod = time;
         emit timePeriodSet(timePeriod);
     }
@@ -139,12 +130,12 @@ contract DeadManSwitch {
     // Needs token interaction here as well
     function Ping() private onlyOwner {
         uint256 ethBalance = address(this).balance;
+        address currentAddress;
 
         for (uint256 i = 0; i < tokenArray.length; i++) {
-            dTokens memory tokenEntry = tokenWallet[i];
-            address iterAddress = tokenEntry.tokenAddress;
-            IERC20 token = IERC20(iterAddress);
-            uint256 value = tokenWallet[i].amount;
+            currentAddress = tokenArray[i];
+            IERC20 token = IERC20(currentAddress);
+            uint256 value = tokenWallet[currentAddress];
 
             if (block.timestamp < timePeriod) {
                 pingActive = true;
