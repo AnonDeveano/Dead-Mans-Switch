@@ -105,17 +105,14 @@ contract DeadManSwitch {
     {
         IERC20 token = IERC20(_token);
         token.safeTransferFrom(msg.sender, address(this), value);
+        address currentAddress = _token;
+        uint256 walletValue = tokenWallet[_token];
 
-        for (uint256 i = 0; i < tokenArray.length; i++) {
-            dTokens memory tokenEntry = tokenWallet[i];
-
-            if (tokenEntry.tokenAddress == _token) {
-                tokenEntry.amount += value;
-            } else {
-                tokenWallet[tokenNum] = dTokens(tokenNum, _token, value);
-                tokenArray.push(tokenNum);
-                tokenNum++;
-            }
+        if (walletValue > 0) {
+            tokenWallet[currentAddress] += value;
+        } else {
+            tokenWallet[currentAddress] = value;
+            tokenArray.push(currentAddress);
         }
 
         emit DepositTokens(msg.sender, address(this), _token, msg.value);
