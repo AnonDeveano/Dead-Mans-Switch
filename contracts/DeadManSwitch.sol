@@ -74,6 +74,7 @@ contract DeadManSwitch {
     }
 
     // Set time duration for ping()
+    // This is measured in seconds; 1 min = 60, 1 hour = 3600, etc.
     function setTimePeriod(uint256 time) public onlyOwner {
         timePeriod = time;
         emit timePeriodSet(timePeriod);
@@ -110,7 +111,7 @@ contract DeadManSwitch {
     }
 
     // Withdraw
-    function withdrawEthers(uint256 amount) private onlyOwner {
+    function withdrawEthers(uint256 amount) public onlyOwner {
         require(vaultBalance >= amount);
         vaultBalance = vaultBalance.sub(amount);
         distAddress.transfer(address(this).balance);
@@ -122,13 +123,14 @@ contract DeadManSwitch {
         IERC20 token = IERC20(tokenContract);
         uint256 value = token.balanceOf(address(this));
         token.safeTransfer(distAddress, value);
+        tokenWallet[tokenContract] = 0;
         emit TokensWithdrawn(owner, distAddress, tokenContract, value);
     }
 
     // Ping, if done before timePeriod expires, renews bool/timePeriod
     // Else, sends ether to the distAddress
     // Needs token interaction here as well
-    function Ping() private onlyOwner {
+    function Ping() public payable onlyOwner {
         uint256 ethBalance = address(this).balance;
         address currentAddress;
 
@@ -142,9 +144,11 @@ contract DeadManSwitch {
                 timePeriod = block.timestamp + 12 weeks;
             } else {
                 token.safeTransfer(distAddress, value);
-                distAddress.transfer(ethBalance);
+                tokenWallet[currentAddress] = 0;
             }
         }
+
+        distAddress.transfer(ethBalance);
     }
 
     /* ========== GETTERS ========== */
