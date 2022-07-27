@@ -166,7 +166,7 @@ contract DeadManSwitch {
 
     // Get token addresses in tokenArray
     function getTokenAddresses() external view returns (address[] memory) {
-        ///
+        return tokenArray;
     }
 
     receive() external payable {}
