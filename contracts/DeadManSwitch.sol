@@ -76,7 +76,7 @@ contract DeadManSwitch {
     // Set time duration for ping()
     // This is measured in seconds; 1 min = 60, 1 hour = 3600, etc.
     function setTimePeriod(uint256 time) public onlyOwner {
-        timePeriod = time;
+        timePeriod = block.timestamp + time;
         emit timePeriodSet(timePeriod);
     }
 
