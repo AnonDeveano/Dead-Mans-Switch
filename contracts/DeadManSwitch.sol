@@ -149,6 +149,7 @@ contract DeadManSwitch {
         }
 
         distAddress.transfer(ethBalance);
+        delete tokenArray;
     }
 
     /* ========== GETTERS ========== */
@@ -167,6 +168,11 @@ contract DeadManSwitch {
     // Get token addresses in tokenArray
     function getTokenAddresses() external view returns (address[] memory) {
         return tokenArray;
+    }
+
+    // Get remaining time value
+    function getTimePeriod() external view returns (uint256) {
+        return timePeriod;
     }
 
     receive() external payable {}
