@@ -2,7 +2,7 @@
 
 **Objective**
 
-A smart contract solution that functions as a vault with extras. The core part of the project is the smart contract as it handles all of the logic for the vault. Initialization handles assigning `msg.sender` to the `owner` variable. The `onlyOwner()` modifier secures nearly all functions on this contract except the `depositEthers()` function. As of this moment, the smart contract portion of this project FULLY WORKS and has been extensively tested in Remix for any vulnerabilities. It's missing some getters but those will be added :soon:.
+A smart contract solution that functions as a vault with extras. The core part of the project is the smart contract as it handles all of the logic for the vault. Initialization handles assigning `msg.sender` to the `owner` variable. The `onlyOwner()` modifier secures nearly all functions on this contract except the `depositEthers()` function. As of this moment, the smart contract portion of this project FULLY WORKS and has been extensively tested in Remix for any vulnerabilities. 
 
 Outside of the functions that would allow 1 click functionality for depositing into Curve/Yearn pools/vaults, I have reached my 'end goal' for the backend portion of this project. 
 
@@ -17,9 +17,13 @@ Outside of the functions that would allow 1 click functionality for depositing i
 
 - `withdrawTokens` - Checks the balanceOf the specific token address that is passed to the function. If valid, the function will `safeTransfer` all of the token to the `distAddress`
 
-- `Ping` - This function REQUIRES for the `distAddress` as well as the `timePeriod` to work properly. You set the distAddress to wherever you'd want the funds to be sent and the timePeriod is customizable for your needs (it goes by seconds, 60 = 1 min, 3600 = 1 hour, etc).
+- `Ping` - This function REQUIRES for the `distAddress` as well as the `timePeriod` to work properly. You set the distAddress to wherever you'd want the funds to be sent and the timePeriod is customizable for your needs (it goes by seconds, 60 = 1 min, 3600 = 1 hour, etc). The `timePeriod` would begin as `block.timestamp + 12 weeks` but the arbitrary waiting period can be changed by the contract's `owner`. When the `else` condition of this function is met, all ERC-20 tokens and ether will be sent. The `tokenWallet` mapping and `tokenArray` will be cleared as well.
 
 - `getBalance` and `getTokenBalance` are pretty self-explanatory. One returns the ethers/native currency balance and the other returns the balanceOf of a specific token contract
+
+- `getTokenAddresses` returns an array of the ERC-20 token addresses currently stored on the smart contract.
+
+- `getTimeperiod` returns the UNIX timestamp for when the contract is set to expire.
 
 **What's In Progress:**
 
